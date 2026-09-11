@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>超级马里奥：听音辨字大冒险 (iPad 触控全适配版)</title>
+<style>
+  * { box-sizing: border-box; touch-action: manipulation; }
+  body {
+    margin: 0;
+    padding: 10px 0;
+    background: #11121a;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #header {
+    width: 980px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+  }
+  .hud-badge {
+    background: #202232;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 2px solid #3d405b;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 14px;
+  }
+  #btn-replay, #btn-lang {
+    cursor: pointer;
+    background: #e63946;
+    color: #fff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 13px;
+    box-shadow: 0 4px #9d0208;
+    transition: transform 0.1s;
+  }
+  #btn-replay:hover, #btn-lang:hover { transform: translateY(-2px); }
+  #btn-replay:active, #btn-lang:active { transform: translateY(2px); box-shadow: 0 2px #9d0208; }
+
+  /* 游戏舞台画布 */
+  #game-container {
+    position: relative;
+    width: 980px;
+    height: 450px;
+    background: #5c94fc;
+    border: 4px solid #111;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.65);
+  }
+
+  /* 地面 */
+  .ground {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 64px;
+    background: 
+      linear-gradient(45deg, #d35400 25%, transparent 25%, transparent 75%, #d35400 75%),
+      linear-gradient(45deg, #d35400 25%, transparent 25%, transparent 75%, #d35400 75%),
+      #e67e22;
+    background-size: 16px 16px;
+    background-position: 0 0, 8px 8px;
+    border-top: 6px solid #27ae60;
+    z-index: 10;
+  }
+
+  /* 左侧大城堡 */
+  #left-big-castle {
+    position: absolute;
+    bottom: 64px;
+    left: 0;
+    width: 140px;
+    height: 250px;
+    z-index: 8;
+    pointer-events: none;
+  }
+
+  /* 右侧小城堡 */
+  #right-small-castle {
+    position: absolute;
+    bottom: 64px;
+    left: 840px;
+    width: 130px;
+    height: 140px;
+    z-index: 8;
+    pointer-events: none;
+  }
+
+  /* 8-bit 马里奥像素点阵 */
+  #mario {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    bottom: 64px;
+    left: 88px;
+    transform-origin: bottom center;
+    image-rendering: pixelated;
+    z-index: 15;
+  }
+  .mario-pixel {
+    width: 1px;
+    height: 1px;
+    background: transparent;
+    box-shadow:
+      3px 1px #d62828, 4px 1px #d62828, 5px 1px #d62828, 6px 1px #d62828, 7px 1px #d62828,
+      2px 2px #d62828, 3px 2px #d62828, 4px 2px #d62828, 5px 2px #d62828, 6px 2px #d62828, 7px 2px #d62828, 8px 2px #d62828, 9px 2px #d62828,
+      2px 3px #5e3023, 3px 3px #5e3023, 4px 3px #5e3023, 5px 3px #f4a261, 6px 3px #000, 7px 3px #f4a261,
+      1px 4px #5e3023, 2px 4px #f4a261, 3px 4px #5e3023, 4px 4px #f4a261, 5px 4px #f4a261, 6px 4px #f4a261, 7px 4px #000, 8px 4px #f4a261, 9px 4px #f4a261, 10px 4px #f4a261,
+      1px 5px #5e3023, 2px 5px #f4a261, 3px 5px #5e3023, 4px 5px #5e3023, 5px 5px #f4a261, 6px 5px #f4a261, 7px 5px #f4a261, 8px 5px #000, 9px 5px #000, 10px 5px #000,
+      2px 6px #5e3023, 3px 6px #f4a261, 4px 6px #f4a261, 5px 6px #f4a261, 6px 6px #f4a261, 7px 6px #f4a261, 8px 6px #f4a261,
+      3px 7px #d62828, 4px 7px #d62828, 5px 7px #d62828, 6px 7px #d62828, 7px 7px #d62828,
+      2px 8px #d62828, 3px 8px #d62828, 4px 8px #0077b6, 5px 8px #d62828, 6px 8px #d62828, 7px 8px #0077b6, 8px 8px #d62828, 9px 8px #d62828,
+      1px 9px #d62828, 2px 9px #d62828, 3px 9px #0077b6, 4px 9px #0077b6, 5px 9px #0077b6, 6px 9px #0077b6, 7px 9px #0077b6, 8px 9px #0077b6, 9px 9px #d62828, 10px 9px #d62828,
+      1px 10px #f4a261, 2px 10px #f4a261, 3px 10px #0077b6, 4px 10px #fcbf49, 5px 10px #0077b6, 6px 10px #0077b6, 7px 10px #fcbf49, 8px 10px #0077b6, 9px 10px #f4a261, 10px 10px #f4a261,
+      3px 11px #0077b6, 4px 11px #0077b6, 5px 11px #0077b6, 6px 11px #0077b6, 7px 11px #0077b6, 8px 11px #0077b6,
+      2px 12px #0077b6, 3px 12px #0077b6, 4px 12px #0077b6, 5px 12px #0077b6, 6px 12px #0077b6, 7px 12px #0077b6, 8px 12px #0077b6, 9px 12px #0077b6,
+      2px 13px #5e3023, 3px 13px #5e3023, 4px 13px #5e3023, 7px 13px #5e3023, 8px 13px #5e3023, 9px 13px #5e3023,
+      1px 14px #5e3023, 2px 14px #5e3023, 3px 14px #5e3023, 7px 14px #5e3023, 8px 14px #5e3023, 9px 14px #5e3023, 10px 14px #5e3023;
+  }
+
+  /* 经典红砖块 */
+  .solid-brick {
+    position: absolute;
+    width: 52px;
+    height: 52px;
+    background: #b84418;
+    border: 2px solid #000;
+    box-shadow: inset 0 4px 0 #fce4d6, inset 0 -4px 0 #5c1800;
+    background-image: 
+      linear-gradient(to bottom, transparent 24px, #000 24px, #000 26px, transparent 26px),
+      linear-gradient(to right, transparent 24px, #000 24px, #000 26px, transparent 26px);
+    z-index: 6;
+  }
+  .solid-brick.hit-bounce {
+    animation: blockBounce 0.16s ease-out;
+  }
+
+  /* 金色问号汉字砖块 */
+  .block {
+    position: absolute;
+    min-width: 52px;
+    height: 52px;
+    background: #fc9838;
+    border: 3px solid #000;
+    border-radius: 4px;
+    box-shadow: inset 3px 3px 0 #ffe0b2, inset -3px -3px 0 #b35900;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row; 
+    gap: 2px;
+    color: #4a2800;
+    cursor: pointer;
+    z-index: 7;
+    transition: width 0.1s ease-out;
+    padding: 0 4px;
+  }
+  .block-text-char {
+    font-size: 26px;
+    font-weight: 900;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.4);
+  }
+  .block.multi-char .block-text-char {
+    font-size: 20px;
+  }
+  .block::before, .block::after {
+    content: "";
+    position: absolute;
+    width: 4px; height: 4px;
+    background: #000; z-index: 2;
+  }
+  .block::before { top: 3px; left: 3px; }
+  .block::after { bottom: 3px; left: 3px; }
+  .block-corner-dots {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
+  }
+  .block-corner-dots::before, .block-corner-dots::after {
+    content: ""; position: absolute; width: 4px; height: 4px; background: #000;
+  }
+  .block-corner-dots::before { top: 3px; right: 3px; }
+  .block-corner-dots::after { bottom: 3px; right: 3px; }
+
+  .block.hit-bounce {
+    animation: blockBounce 0.16s ease-out;
+  }
+  @keyframes blockBounce {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-14px); }
+    100% { transform: translateY(0); }
+  }
+
+  /* 🌟 答对后向上飘出的英文/拼音气泡 */
+  .hint-fly-pop {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.95);
+    color: #00ffff;
+    font-size: 20px;
+    font-weight: 900;
+    padding: 6px 14px;
+    border-radius: 8px;
+    white-space: nowrap;
+    border: 3px solid #f39c12;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.7);
+    animation: hintFlyUp 0.9s ease-out forwards;
+    pointer-events: none;
+    z-index: 50;
+  }
+  @keyframes hintFlyUp {
+    0% { transform: translateY(0) scale(0.5); opacity: 0; }
+    30% { transform: translateY(-35px) scale(1.15); opacity: 1; }
+    100% { transform: translateY(-80px) scale(1); opacity: 0; }
+  }
+
+  /* 板栗仔 */
+  .goomba {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    bottom: 58px;
+    transform: scale(2.5);
+    transform-origin: bottom center;
+    image-rendering: pixelated;
+    z-index: 9;
+  }
+  .goomba-pixel {
+    width: 1px;
+    height: 1px;
+    background: transparent;
+    box-shadow:
+      6px 1px #9c4100, 7px 1px #9c4100, 8px 1px #9c4100, 9px 1px #9c4100,
+      5px 2px #9c4100, 6px 2px #9c4100, 7px 2px #9c4100, 8px 2px #9c4100, 9px 2px #9c4100, 10px 2px #9c4100,
+      4px 3px #9c4100, 5px 3px #9c4100, 6px 3px #9c4100, 7px 3px #9c4100, 8px 3px #9c4100, 9px 3px #9c4100, 10px 3px #9c4100, 11px 3px #9c4100,
+      3px 4px #9c4100, 4px 4px #9c4100, 5px 4px #fff, 6px 4px #000, 7px 4px #9c4100, 8px 4px #9c4100, 9px 4px #000, 10px 4px #fff, 11px 4px #9c4100, 12px 4px #9c4100,
+      2px 5px #9c4100, 3px 5px #9c4100, 4px 5px #fff, 5px 5px #fff, 6px 5px #000, 7px 5px #9c4100, 8px 5px #9c4100, 9px 5px #000, 10px 5px #fff, 11px 5px #fff, 12px 5px #9c4100, 13px 5px #9c4100,
+      1px 6px #9c4100, 2px 6px #9c4100, 3px 6px #9c4100, 4px 6px #fff, 5px 6px #000, 6px 6px #9c4100, 7px 6px #9c4100, 8px 6px #9c4100, 9px 6px #9c4100, 10px 6px #000, 11px 6px #fff, 12px 6px #9c4100, 13px 6px #9c4100, 14px 6px #9c4100,
+      1px 7px #9c4100, 2px 7px #9c4100, 3px 7px #9c4100, 4px 7px #9c4100, 5px 7px #9c4100, 6px 7px #9c4100, 7px 7px #9c4100, 8px 7px #9c4100, 9px 7px #9c4100, 10px 7px #9c4100, 11px 7px #9c4100, 12px 7px #9c4100, 13px 7px #9c4100, 14px 7px #9c4100,
+      4px 8px #ffd8a8, 5px 8px #ffd8a8, 6px 8px #ffd8a8, 7px 8px #ffd8a8, 8px 8px #ffd8a8, 9px 8px #ffd8a8, 10px 8px #ffd8a8, 11px 8px #ffd8a8,
+      3px 9px #ffd8a8, 4px 9px #ffd8a8, 5px 9px #ffd8a8, 6px 9px #ffd8a8, 7px 9px #ffd8a8, 8px 9px #ffd8a8, 9px 9px #ffd8a8, 10px 9px #ffd8a8, 11px 9px #ffd8a8, 12px 9px #ffd8a8,
+      2px 10px #ffd8a8, 3px 10px #ffd8a8, 4px 10px #ffd8a8, 5px 10px #ffd8a8, 6px 10px #ffd8a8, 7px 10px #ffd8a8, 8px 10px #ffd8a8, 9px 10px #ffd8a8, 10px 10px #ffd8a8, 11px 10px #ffd8a8, 12px 10px #ffd8a8, 13px 10px #ffd8a8,
+      1px 11px #000, 2px 11px #000, 3px 11px #000, 4px 11px #000, 5px 11px #ffd8a8, 6px 11px #ffd8a8, 7px 11px #ffd8a8, 8px 11px #ffd8a8, 9px 11px #ffd8a8, 10px 11px #ffd8a8, 11px 11px #000, 12px 11px #000, 13px 11px #000, 14px 11px #000,
+      1px 12px #000, 2px 12px #000, 3px 12px #000, 4px 12px #000, 5px 12px #000, 10px 12px #000, 11px 12px #000, 12px 12px #000, 13px 12px #000, 14px 12px #000;
+  }
+  .goomba.flattened {
+    transform: scaleX(2.5) scaleY(0.65) translateY(12px) !important;
+  }
+
+  /* 通关与 Game Over 弹窗 */
+  #cleared-banner, #gameover-banner {
+    display: none;
+    position: absolute;
+    top: 110px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.92);
+    border: 4px solid #ffd700;
+    padding: 18px 40px;
+    border-radius: 12px;
+    color: #fff;
+    text-align: center;
+    z-index: 100;
+  }
+  #gameover-banner { border-color: #e63946; }
+  #cleared-banner h2 { margin: 0 0 6px 0; color: #ffd700; font-size: 24px; }
+  #gameover-banner h2 { margin: 0 0 6px 0; color: #e63946; font-size: 28px; letter-spacing: 2px; }
+  #cleared-banner p, #gameover-banner p { margin: 0; font-size: 14px; color: #eee; }
+
+  /* 🌟 iPad 专属触控游戏手柄 (屏幕下方悬浮控制栏) */
+  #ipad-touch-controller {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 980px;
+    background: #171923;
+    padding: 12px 20px;
+    margin-top: 10px;
+    border-radius: 12px;
+    border: 2px solid #2d3748;
+  }
+  .d-pad {
+    display: flex;
+    gap: 15px;
+  }
+  .pad-btn {
+    width: 75px;
+    height: 55px;
+    background: #2b6cb0;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px #1a365d;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pad-btn:active {
+    background: #3182ce;
+    transform: translateY(2px);
+    box-shadow: 0 2px #1a365d;
+  }
+  .action-pad {
+    display: flex;
+    gap: 15px;
+  }
+  .action-btn {
+    width: 110px;
+    height: 55px;
+    background: #dd6b20;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px #9c4221;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .action-btn:active {
+    background: #ed8936;
+    transform: translateY(2px);
+    box-shadow: 0 2px #9c4221;
+  }
+
+  /* 底部面板 */
+  #controls {
+    width: 980px;
+    background: #202232;
+    padding: 14px 20px;
+    margin-top: 10px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .control-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+  }
+  .control-row label {
+    color: #edf2f4;
+    font-size: 13px;
+    font-weight: bold;
+    min-width: 140px;
+  }
+  select, input[type="text"] {
+    padding: 7px 12px;
+    border: 2px solid #4a4e69;
+    background: #15161f;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+  }
+  select { cursor: pointer; }
+  input[type="text"] { flex: 1; }
+  
+  .btn-base {
+    background: #2a9d8f;
+    color: white;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 13px;
+  }
+  .btn-base:hover { background: #21867a; }
+  .btn-accent { background: #e76f51; }
+  .btn-accent:hover { background: #d45d3f; }
+
+  .tip {
+    width: 980px;
+    color: #8d99ae;
+    font-size: 12px;
+    margin-top: 6px;
+    text-align: center;
+  }
+
+  /* 🌟 针对 iPad 屏幕尺寸的自动整体缩放与响应式容器 */
+  @media screen and (max-width: 1024px) {
+    body {
+      transform: scale(0.98);
+      transform-origin: top center;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="hud-badge">
+    <span>🚩 <span id="txt-world">关卡 1-1</span></span>
+    <span>❤️ <span id="hearts">❤️❤️❤️</span></span>
+    <span>🪙 <strong id="score" style="color: #ffd700;">0</strong></span>
+    <span>🎯 本关进度: <strong id="progress" style="color: #48bfe3;">1/5</strong></span>
+  </div>
+  <div>
+    <button id="btn-replay" onclick="playAudio()">🌸 🔊 <span id="txt-listen">离线听音 / Listen</span></button>
+  </div>
+  <div>
+    <button id="btn-lang" onclick="toggleLang()">EN / 中文</button>
+  </div>
+</div>
+
+<div id="game-container">
+  <!-- 左侧大城堡 -->
+  <svg id="left-big-castle" viewBox="0 0 140 250">
+    <defs>
+      <pattern id="castle-brick" width="16" height="8" patternUnits="userSpaceOnUse">
+        <rect width="16" height="8" fill="#b84418" stroke="#5c1800" stroke-width="1"/>
+        <line x1="0" y1="0" x2="16" y2="0" stroke="#fce4d6" stroke-width="0.8"/>
+        <line x1="8" y1="4" x2="8" y2="8" stroke="#5c1800" stroke-width="1"/>
+      </pattern>
+    </defs>
+    <rect x="0" y="140" width="140" height="110" fill="url(#castle-brick)"/>
+    <path d="M 12 250 L 12 200 Q 24 185 36 200 L 36 250 Z" fill="#000"/>
+    <path d="M 52 250 L 52 200 Q 64 185 76 200 L 76 250 Z" fill="#000"/>
+    <path d="M 92 250 L 92 200 Q 104 185 116 200 L 116 250 Z" fill="#000"/>
+    <path d="M 0 140 L 0 128 L 12 128 L 12 140 L 26 140 L 26 128 L 38 128 L 38 140 L 52 140 L 52 128 L 64 128 L 64 140 L 78 140 L 78 128 L 90 128 L 90 140 L 104 140 L 104 128 L 116 128 L 116 140 L 128 140 L 128 128 L 140 128 L 140 140 Z" fill="#b84418" stroke="#5c1800"/>
+    <rect x="0" y="80" width="105" height="60" fill="url(#castle-brick)"/>
+    <path d="M 22 140 L 22 110 Q 32 98 42 110 L 42 140 Z" fill="#000"/>
+    <path d="M 58 140 L 58 110 Q 68 98 78 110 L 78 140 Z" fill="#000"/>
+    <path d="M 0 80 L 0 68 L 14 68 L 14 80 L 28 80 L 28 68 L 42 68 L 42 80 L 56 80 L 56 68 L 70 68 L 70 80 L 84 80 L 84 68 L 98 68 L 98 80 L 105 80 Z" fill="#b84418" stroke="#5c1800"/>
+    <rect x="18" y="24" width="70" height="56" fill="url(#castle-brick)"/>
+    <path d="M 43 76 L 43 50 Q 53 40 63 50 L 63 76 Z" fill="#000"/>
+    <path d="M 18 24 L 18 12 L 30 12 L 30 24 L 46 24 L 46 12 L 58 12 L 58 24 L 74 24 L 74 12 L 88 12 L 88 24 Z" fill="#b84418" stroke="#5c1800"/>
+  </svg>
+
+  <!-- 右侧小城堡 -->
+  <svg id="right-small-castle" viewBox="0 0 130 140">
+    <defs>
+      <pattern id="small-brick" width="14" height="7" patternUnits="userSpaceOnUse">
+        <rect width="14" height="7" fill="#b84418" stroke="#5c1800" stroke-width="0.8"/>
+        <line x1="0" y1="0" x2="14" y2="0" stroke="#fce4d6" stroke-width="0.6"/>
+        <line x1="7" y1="3.5" x2="7" y2="7" stroke="#5c1800" stroke-width="0.8"/>
+      </pattern>
+    </defs>
+    <rect x="12" y="90" width="6" height="50" fill="#f4a261" stroke="#5c1800" stroke-width="1"/>
+    <circle cx="15" cy="85" r="10" fill="#2ecc71" stroke="#1b5e20" stroke-width="2"/>
+    <rect x="110" y="105" width="6" height="35" fill="#f4a261" stroke="#5c1800"/>
+    <rect x="120" y="112" width="6" height="28" fill="#f4a261" stroke="#5c1800"/>
+    <line x1="106" y1="116" x2="128" y2="116" stroke="#5c1800" stroke-width="3"/>
+    <line x1="106" y1="128" x2="128" y2="128" stroke="#5c1800" stroke-width="3"/>
+    <rect x="25" y="60" width="80" height="80" fill="url(#small-brick)"/>
+    <path d="M 25 60 L 25 48 L 36 48 L 36 60 L 48 60 L 48 48 L 60 48 L 60 60 L 72 60 L 72 48 L 84 48 L 84 60 L 94 60 L 94 48 L 105 48 L 105 60 Z" fill="#b84418" stroke="#5c1800"/>
+    <path d="M 52 140 L 52 92 Q 65 76 78 92 L 78 140 Z" fill="#000"/>
+    <rect x="40" y="16" width="50" height="44" fill="url(#small-brick)"/>
+    <path d="M 40 16 L 40 5 L 50 5 L 50 16 L 62 16 L 62 5 L 72 5 L 72 16 L 82 16 L 82 5 L 90 5 L 90 16 Z" fill="#b84418" stroke="#5c1800"/>
+    <rect x="48" y="24" width="8" height="18" rx="2" fill="#000"/>
+    <rect x="74" y="24" width="8" height="18" rx="2" fill="#000"/>
+  </svg>
+
+  <!-- 马里奥 -->
+  <div id="mario">
+    <div class="mario-pixel"></div>
+  </div>
+
+  <!-- 动态布局容器 -->
+  <div id="bricks-layout-container"></div>
+
+  <!-- 板栗仔巡逻怪 -->
+  <div class="goomba" id="goomba1" style="left: 390px;"><div class="goomba-pixel"></div></div>
+  <div class="goomba" id="goomba2" style="left: 750px;"><div class="goomba-pixel"></div></div>
+
+  <!-- 通关横幅 -->
+  <div id="cleared-banner">
+    <h2 id="banner-title">🎉 关卡完成！COURSE CLEAR!</h2>
+    <p id="banner-sub">马里奥已进入城堡，正在载入下一关...</p>
+  </div>
+
+  <!-- Game Over 弹窗 -->
+  <div id="gameover-banner">
+    <h2>GAME OVER</h2>
+    <p>3条生命已用尽！重新开始挑战...</p>
+  </div>
+
+  <div class="ground"></div>
+</div>
+
+<!-- 🌟 iPad 虚拟触控手柄区域 -->
+<div id="ipad-touch-controller">
+  <div class="d-pad">
+    <button class="pad-btn" id="btn-left">⬅️ 左移</button>
+    <button class="pad-btn" id="btn-right">右移 ➡️</button>
+  </div>
+  <div class="action-pad">
+    <button class="action-btn" id="btn-jump">⬆️ 跳跃</button>
+  </div>
+</div>
+
+<div id="controls">
+  <div class="control-row">
+    <label id="txt-preset-label">《轻松学中文》课本预设:</label>
+    <select id="preset-select" onchange="onPresetChange()">
+      <option value="1">第1册: 数字与基本字 (一, 二, 三, 四, 五, 六, 七, 八, 九, 十, 大, 小, 多, 少, 日, 月, 山, 水)</option>
+      <option value="2">第1册: 身体五官 (头, 发, 眼, 睛, 耳, 朵, 鼻, 子, 嘴, 巴, 手, 足)</option>
+      <option value="3">第2册: 家庭成员 (爸爸, 妈妈, 哥哥, 弟弟, 姐姐, 妹妹, 爷爷, 奶奶, 老师, 朋友)</option>
+      <option value="4">第2册: 可爱动物 (猫, 狗, 熊猫, 兔子, 大象, 老虎, 河马)</option>
+      <option value="5">第3册: 水果颜色 (苹果, 香蕉, 西瓜, 葡萄, 红色, 蓝色, 黑色, 白色)</option>
+    </select>
+  </div>
+  
+  <!-- 欧路字典离线检索输入栏 -->
+  <div class="control-row">
+    <label id="txt-eng-label">欧路字典离线检索:</label>
+    <input type="text" id="english-input" placeholder="输入英文查词并加入词库 (例如: cat, dog, apple)..." onkeydown="if(event.key==='Enter') addEnglishWordFromEudic()">
+    <button id="btn-add-eng" class="btn-base btn-accent" onclick="addEnglishWordFromEudic()">📖 离线查词 / Eudic</button>
+  </div>
+
+  <div class="control-row">
+    <label id="txt-custom-label">当前/自定义词汇表 (最少4个):</label>
+    <input type="text" id="custom-words" value="一, 二, 三, 四, 五, 六, 七, 八, 九, 十, 大, 小, 多, 少, 日, 月, 山, 水">
+    <button id="btn-apply" class="btn-base" onclick="updateWords()">更新词库 / Update</button>
+  </div>
+</div>
+
+<div class="tip" id="txt-tip">
+  iPad 触控板已启用：点击屏幕下方「左移」「右移」「跳跃」按钮即可轻松控制马里奥！
+</div>
+
+<script>
+// ====== 欧路字典（Eudic）离线本地核心词典库 ======
+const eudicOfflineDict = {
+  "one": "一", "two": "二", "three": "三", "four": "四", "five": "五",
+  "six": "六", "seven": "七", "eight": "八", "nine": "九", "ten": "十",
+  "big": "大", "small": "小", "many": "多", "few": "少", "sun": "日",
+  "moon": "月", "mountain": "山", "water": "水", "book": "书", "school": "学校",
+
+  "head": "头", "hair": "发", "eye": "眼", "ear": "耳", "nose": "鼻",
+  "mouth": "嘴", "hand": "手", "foot": "足",
+
+  "dad": "爸爸", "mom": "妈妈", "brother": "哥哥", "sister": "姐姐",
+  "grandfather": "爷爷", "grandmother": "奶奶", "teacher": "老师", "friend": "朋友",
+
+  "cat": "猫", "dog": "狗", "bird": "鸟", "fish": "鱼", "rabbit": "兔子",
+  "panda": "熊猫", "elephant": "大象", "tiger": "老虎", "hippo": "河马",
+
+  "apple": "苹果", "banana": "香蕉", "watermelon": "西瓜", "grape": "葡萄", "ice cream": "冰淇淋",
+
+  "red": "红色", "blue": "蓝色", "yellow": "黄色", "green": "绿色", "black": "黑色", "white": "白色",
+
+  "life": "生活", "study": "学习"
+};
+
+const vocabDict = {
+  "一": { en: "one", py: "yī" }, "二": { en: "two", py: "èr" }, "三": { en: "three", py: "sān" }, 
+  "四": { en: "four", py: "sì" }, "五": { en: "five", py: "wǔ" }, "六": { en: "six", py: "liù" }, 
+  "七": { en: "seven", py: "qī" }, "八": { en: "eight", py: "bā" }, "九": { en: "nine", py: "jiǔ" }, 
+  "十": { en: "ten", py: "shí" }, "大": { en: "big", py: "dà" }, "小": { en: "small", py: "xiǎo" }, 
+  "多": { en: "many", py: "duō" }, "少": { en: "few", py: "shǎo" }, "日": { en: "sun", py: "rì" }, 
+  "月": { en: "moon", py: "yuè" }, "山": { en: "mountain", py: "shān" }, "水": { en: "water", py: "shuǐ" },
+  "书": { en: "book", py: "shū" }, "学校": { en: "school", py: "xuéxiào" },
+
+  "头": { en: "head", py: "tóu" }, "发": { en: "hair", py: "fà" }, "眼": { en: "eye", py: "yǎn" }, 
+  "睛": { en: "eye", py: "jīng" }, "耳": { en: "ear", py: "ěr" }, "朵": { en: "ear", py: "duǒ" }, 
+  "鼻": { en: "nose", py: "bí" }, "子": { en: "suffix", py: "zi" }, "嘴": { en: "mouth", py: "zuǐ" }, 
+  "巴": { en: "mouth", py: "bā" }, "手": { en: "hand", py: "shǒu" }, "足": { en: "foot", py: "zú" },
+
+  "爸爸": { en: "dad", py: "bàba" }, "妈妈": { en: "mom", py: "māma" }, "哥哥": { en: "brother", py: "gēge" }, 
+  "弟弟": { en: "brother", py: "dìdi" }, "姐姐": { en: "sister", py: "jiějie" }, "妹妹": { en: "sister", py: "mèimei" }, 
+  "爷爷": { en: "grandfather", py: "yéye" }, "奶奶": { en: "grandmother", py: "nǎinai" }, "老师": { en: "teacher", py: "lǎoshī" }, 
+  "朋友": { en: "friend", py: "péngyou" },
+
+  "猫": { en: "cat", py: "māo" }, "狗": { en: "dog", py: "gǒu" }, "鸟": { en: "bird", py: "niǎo" }, 
+  "鱼": { en: "fish", py: "yú" }, "兔子": { en: "rabbit", py: "tùzi" }, "熊猫": { en: "panda", py: "xióngmāo" }, 
+  "大象": { en: "elephant", py: "dàxiàng" }, "老虎": { en: "tiger", py: "lǎohǔ" }, "河马": { en: "hippo", py: "hémǎ" },
+
+  "苹果": { en: "apple", py: "píngguǒ" }, "香蕉": { en: "banana", py: "xiāngjiāo" }, "西瓜": { en: "watermelon", py: "xīguā" }, 
+  "葡萄": { en: "grape", py: "pútao" }, "冰淇淋": { en: "ice cream", py: "bīngqílín" },
+
+  "红色": { en: "red", py: "hóngsè" }, "蓝色": { en: "blue", py: "lánsè" }, "黄色": { en: "yellow", py: "huángsè" }, 
+  "绿色": { en: "green", py: "lǜsè" }, "黑色": { en: "black", py: "hēisè" }, "白色": { en: "white", py: "báisè" },
+
+  "生活": { en: "life", py: "shēnghuó" }, "学习": { en: "study", py: "xuéxí" }
+};
+
+function getPinyinOrEnglish(word) {
+  if (vocabDict[word]) {
+    return vocabDict[word].en;
+  }
+  let pyResult = [];
+  for (let char of word) {
+    if (vocabDict[char] && vocabDict[char].py) {
+      pyResult.push(vocabDict[char].py);
+    } else {
+      pyResult.push(char);
+    }
+  }
+  return pyResult.join(' ');
+}
+
+async function addEnglishWordFromEudic() {
+  const inputEl = document.getElementById('english-input');
+  const query = inputEl.value.trim().toLowerCase();
+  if (!query) return;
+
+  let matchedZh = eudicOfflineDict[query];
+  if (!matchedZh) {
+    for (let eng in eudicOfflineDict) {
+      if (eng.includes(query) || query.includes(eng)) {
+        matchedZh = eudicOfflineDict[eng];
+        break;
+      }
+    }
+  }
+
+  if (!matchedZh) {
+    try {
+      const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(query)}&langpair=en|zh`);
+      const data = await res.json();
+      if (data && data.responseData && data.responseData.translatedText) {
+        let translated = data.responseData.translatedText.trim();
+        matchedZh = translated.replace(/[^\u4e00-\u9fa5]/g, '').slice(0, 4);
+      }
+    } catch (err) {
+      console.warn("网络翻译失败", err);
+    }
+  }
+
+  if (matchedZh) {
+    vocabDict[matchedZh] = { en: query, py: matchedZh };
+    appendWordToCustomList(matchedZh);
+    inputEl.value = '';
+  } else {
+    vocabDict[query] = { en: query, py: query };
+    appendWordToCustomList(query);
+    inputEl.value = '';
+  }
+}
+
+function appendWordToCustomList(zhWord) {
+  const customInput = document.getElementById('custom-words');
+  let currentList = customInput.value.split(/[,，\s]+/).map(w => w.trim()).filter(w => w.length > 0);
+  
+  if (!currentList.includes(zhWord)) {
+    currentList.push(zhWord);
+    customInput.value = currentList.join(', ');
+    updateWords();
+  } else {
+    alert(`欧路离线词典提示：词汇 "${zhWord}" 已存在于当前词库中！`);
+  }
+}
+
+// ====== 8-bit 原生实时音效合成器 ======
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function ensureAudio() {
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playTone(freq, type, duration, gainVal = 0.15) {
+  ensureAudio();
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, now);
+  gain.gain.setValueAtTime(gainVal, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + duration);
+}
+
+function playSpawningSound() {
+  ensureAudio();
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(150, now);
+  osc.frequency.linearRampToValueAtTime(320, now + 0.18);
+  osc.frequency.linearRampToValueAtTime(520, now + 0.35);
+  gain.gain.setValueAtTime(0.2, now);
+  gain.gain.exponentialRampToValueAtTime(0.01, now + 0.38);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.38);
+}
+
+function playCoinSound() {
+  ensureAudio();
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(987.77, now);
+  osc.frequency.setValueAtTime(1318.51, now + 0.08);
+  gain.gain.setValueAtTime(0.18, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.4);
+}
+
+function playStompSound() {
+  ensureAudio();
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(260, now);
+  osc.frequency.exponentialRampToValueAtTime(80, now + 0.15);
+  gain.gain.setValueAtTime(0.2, now);
+  gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.15);
+}
+
+function playDeathSound() {
+  ensureAudio();
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(380, now);
+  osc.frequency.linearRampToValueAtTime(180, now + 0.2);
+  osc.frequency.linearRampToValueAtTime(80, now + 0.6);
+  gain.gain.setValueAtTime(0.25, now);
+  gain.gain.exponentialRampToValueAtTime(0.01, now + 0.65);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.65);
+}
+
+function playGameOverJingle() {
+  ensureAudio();
+  const notes = [
+    { f: 523, d: 0.15 }, { f: 494, d: 0.15 }, { f: 440, d: 0.15 },
+    { f: 392, d: 0.35 }, { f: 330, d: 0.35 }, { f: 261, d: 0.6 }
+  ];
+  let delay = 0;
+  notes.forEach(n => {
+    setTimeout(() => playTone(n.f, 'sawtooth', n.d, 0.22), delay * 1000);
+    delay += n.d;
+  });
+}
+
+function playClearFanfare() {
+  ensureAudio();
+  const notes = [
+    { f: 392, d: 0.12 }, { f: 523, d: 0.12 }, { f: 659, d: 0.12 },
+    { f: 784, d: 0.12 }, { f: 659, d: 0.12 }, { f: 784, d: 0.36 }
+  ];
+  let delay = 0;
+  notes.forEach(n => {
+    setTimeout(() => playTone(n.f, 'triangle', n.d, 0.22), delay * 1000);
+    delay += n.d;
+  });
+}
+
+// ====== 语音朗读 ======
+let localVoices = [];
+function loadLocalVoices() {
+  if ('speechSynthesis' in window) localVoices = window.speechSynthesis.getVoices();
+}
+if ('speechSynthesis' in window) {
+  loadLocalVoices();
+  window.speechSynthesis.onvoiceschanged = loadLocalVoices;
+}
+
+function findGentleVoice() {
+  if (!localVoices.length && 'speechSynthesis' in window) {
+    localVoices = window.speechSynthesis.getVoices();
+  }
+  const keywords = ['xiaoxiao', 'tingting', 'ting-ting', 'sinji', 'huihui', 'natural', 'chinese', 'zh-cn'];
+  for (let kw of keywords) {
+    const match = localVoices.find(v => (v.lang.includes('zh') || v.lang.includes('cmn')) && v.name.toLowerCase().includes(kw));
+    if (match) return match;
+  }
+  return localVoices.find(v => v.lang.includes('zh') || v.lang.includes('cmn'));
+}
+
+function playAudio() {
+  if (!currentTarget || !('speechSynthesis' in window) || isClearing || isDying || isSpawning || allQuestionsCleared) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(currentTarget);
+  utter.lang = 'zh-CN';
+  utter.rate = 0.70;
+  utter.pitch = 1.08;
+  const v = findGentleVoice();
+  if (v) utter.voice = v;
+  window.speechSynthesis.speak(utter);
+}
+
+// ====== 多语言 UI ======
+const i18n = {
+  zh: {
+    world: "关卡 1-",
+    listen: "离线听音",
+    presetLabel: "《轻松学中文》课本预设:",
+    engLabel: "欧路字典离线检索:",
+    customLabel: "当前/自定义词汇表 (最少4个):",
+    update: "更新词库",
+    tip: "iPad 触控板已启用：点击屏幕下方「左移」「右移」「跳跃」按钮即可轻松控制马里奥！",
+    bannerTitle: "🎉 关卡完成！COURSE CLEAR!",
+    bannerSub: "马里奥已进入城堡，正在载入下一关..."
+  },
+  en: {
+    world: "World 1-",
+    listen: "Audio",
+    presetLabel: "Book Presets:",
+    engLabel: "Eudic Offline Search:",
+    customLabel: "Custom Vocab (Min 4):",
+    update: "Update Vocab",
+    tip: "iPad touch controller enabled: Tap buttons below to control Mario!",
+    bannerTitle: "🎉 COURSE CLEAR!",
+    bannerSub: "Mario entered the castle, loading next stage..."
+  }
+};
+let currentLang = 'zh';
+
+function toggleLang() {
+  currentLang = currentLang === 'zh' ? 'en' : 'zh';
+  document.getElementById('txt-world').innerText = i18n[currentLang].world + currentWorld;
+  document.getElementById('txt-listen').innerText = i18n[currentLang].listen;
+  document.getElementById('txt-preset-label').innerText = i18n[currentLang].presetLabel;
+  document.getElementById('txt-eng-label').innerText = i18n[currentLang].engLabel;
+  document.getElementById('txt-custom-label').innerText = i18n[currentLang].customLabel;
+  document.getElementById('btn-apply').innerText = i18n[currentLang].update;
+  document.getElementById('txt-tip').innerText = i18n[currentLang].tip;
+  document.getElementById('banner-title').innerText = i18n[currentLang].bannerTitle;
+  document.getElementById('banner-sub').innerText = i18n[currentLang].bannerSub;
+}
+
+const presetVocabMap = {
+  "1": "一, 二, 三, 四, 五, 六, 七, 八, 九, 十, 大, 小, 多, 少, 日, 月, 山, 水",
+  "2": "头, 发, 眼, 睛, 耳, 朵, 鼻, 子, 嘴, 巴, 手, 足",
+  "3": "爸爸, 妈妈, 哥哥, 弟弟, 姐姐, 妹妹, 爷爷, 奶奶, 老师, 朋友",
+  "4": "猫, 狗, 熊猫, 兔子, 大象, 老虎, 河马",
+  "5": "苹果, 香蕉, 西瓜, 葡萄, 红色, 蓝色, 黑色, 白色"
+};
+
+function onPresetChange() {
+  const sel = document.getElementById('preset-select').value;
+  if (presetVocabMap[sel]) {
+    document.getElementById('custom-words').value = presetVocabMap[sel];
+    updateWords();
+  }
+}
+
+// ====== 关卡与状态 ======
+let currentWorld = 1;
+let words = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "大", "小", "多", "少", "日", "月", "山", "水"];
+let levelFiveTargets = [];
+let currentStep = 0;
+let currentTarget = "";
+let score = 0;
+let allQuestionsCleared = false; 
+let isClearing = false;    
+let isDying = false;
+let isSpawning = false;
+let hp = 3;
+
+let dynamicSolidBricks = [];
+let dynamicQuestionBlocks = [];
+
+const keys = { left: false, right: false };
+let posX = 100;
+let posY = 64;
+let prevPosY = 64;
+let velX = 0;
+let velY = 0;
+let facingRight = true;
+let isGrounded = true;
+
+const ACCEL = 0.85;
+const FRICTION = 0.82;
+const MAX_SPEED = 5.8;
+const JUMP_FORCE = 16.6;
+const GRAVITY = 0.80;
+
+const MARIO_W = 38;
+const MARIO_H = 44;
+
+const goombas = [
+  { elId: 'goomba1', x: 390, y: 64, vx: -1.4, minX: 220, maxX: 460, alive: true },
+  { elId: 'goomba2', x: 750, y: 64, vx: 1.4, minX: 710, maxX: 820, alive: true }
+];
+
+const rightCastleDoorX = 890;
+
+function updateHUD() {
+  document.getElementById('hearts').innerText = "❤️".repeat(Math.max(0, hp)) + "🖤".repeat(Math.max(0, 3 - hp));
+  document.getElementById('score').innerText = score;
+  if (allQuestionsCleared) {
+    document.getElementById('progress').innerHTML = `<span style="color:#2ecc71; font-weight:bold;">全部通过！请走到城堡门口 👉</span>`;
+  } else {
+    document.getElementById('progress').innerText = `${Math.min(5, currentStep + 1)}/5`;
+  }
+}
+
+function triggerMarioFallAndRestart() {
+  if (isDying || isClearing || isSpawning) return;
+  isDying = true;
+  keys.left = false;
+  keys.right = false;
+
+  hp--;
+  updateHUD();
+
+  const marioEl = document.getElementById('mario');
+  marioEl.style.zIndex = '50';
+
+  if (hp <= 0) {
+    playGameOverJingle();
+    document.getElementById('gameover-banner').style.display = 'block';
+
+    const goOverTimer = setInterval(() => {
+      velY -= 0.85;
+      posY += velY;
+      marioEl.style.bottom = posY + 'px';
+
+      if (posY < -100) {
+        clearInterval(goOverTimer);
+        document.getElementById('gameover-banner').style.display = 'none';
+        marioEl.style.zIndex = '15';
+        hp = 3; 
+        score = 0;
+        initWorld();
+      }
+    }, 20);
+  } else {
+    playDeathSound();
+    velX = 0;
+    velY = 12;
+    const deathGravity = 0.85;
+
+    const fallTimer = setInterval(() => {
+      velY -= deathGravity;
+      posY += velY;
+      marioEl.style.bottom = posY + 'px';
+
+      if (posY < -80) {
+        clearInterval(fallTimer);
+        marioEl.style.zIndex = '15';
+        initWorld();
+      }
+    }, 20);
+  }
+}
+
+function startCastleWalkOutSequence() {
+  isSpawning = true;
+  facingRight = true;
+  posX = 92;
+  posY = 64;
+  prevPosY = 64;
+  velX = 0;
+  velY = 0;
+
+  const marioEl = document.getElementById('mario');
+  marioEl.style.opacity = '0';
+  marioEl.style.left = posX + 'px';
+  marioEl.style.bottom = posY + 'px';
+
+  setTimeout(playSpawningSound, 100);
+
+  let walkStep = 0;
+  const walkInterval = setInterval(() => {
+    walkStep++;
+    posX += 1.8;
+    marioEl.style.opacity = Math.min(1, walkStep * 0.08);
+    marioEl.style.left = posX + 'px';
+
+    if (posX >= 148) {
+      clearInterval(walkInterval);
+      posX = 148;
+      marioEl.style.opacity = '1';
+      isSpawning = false;
+      setTimeout(playAudio, 300);
+    }
+  }, 25);
+}
+
+function initWorld() {
+  let pool = [...words].sort(() => Math.random() - 0.5);
+  levelFiveTargets = pool.slice(0, 5);
+  while(levelFiveTargets.length < 5) {
+    levelFiveTargets.push(words[Math.floor(Math.random() * words.length)]);
+  }
+
+  currentStep = 0;
+  allQuestionsCleared = false;
+  isClearing = false;
+  isDying = false;
+
+  goombas[0].alive = true; goombas[0].x = 390;
+  document.getElementById('goomba1').classList.remove('flattened');
+
+  goombas[1].alive = true; goombas[1].x = 750;
+  document.getElementById('goomba2').classList.remove('flattened');
+
+  document.getElementById('cleared-banner').style.display = 'none';
+
+  updateHUD();
+  renderBlocks();
+  startCastleWalkOutSequence();
+}
+
+function renderBlocks() {
+  const container = document.getElementById('bricks-layout-container');
+  container.innerHTML = '';
+  dynamicSolidBricks = [];
+  dynamicQuestionBlocks = [];
+
+  if (currentStep >= 5) {
+    allQuestionsCleared = true;
+    currentTarget = "";
+    updateHUD();
+    return;
+  }
+
+  currentTarget = levelFiveTargets[currentStep];
+
+  let distractors = [];
+  let otherWords = words.filter(w => w !== currentTarget);
+  otherWords.sort(() => Math.random() - 0.5);
+  distractors = otherWords.slice(0, 3);
+  while(distractors.length < 3) distractors.push("中");
+
+  let options = [currentTarget, distractors[0], distractors[1], distractors[2]];
+  options.sort(() => Math.random() - 0.5);
+
+  let maxCharLen = 1;
+  options.forEach(opt => {
+    if (opt.length > maxCharLen) maxCharLen = opt.length;
+  });
+
+  let unifiedWidth = 52;
+  if (maxCharLen >= 3) {
+    unifiedWidth = 94; 
+  } else if (maxCharLen === 2) {
+    unifiedWidth = 74; 
+  }
+
+  const leftSingleX = 260; 
+  const arrayStartX = 440; 
+  const brickY = 160;
+
+  const b0_x = arrayStartX;                         
+  const q1_x = b0_x + 52;                            
+  const b1_x = q1_x + unifiedWidth;                  
+  const q2_x = b1_x + 52;                            
+  const b2_x = q2_x + unifiedWidth;                  
+
+  const q3_x = b1_x + (52 - unifiedWidth) / 2;
+  const q3_y = 285;
+
+  const qBlocksData = [
+    { x: leftSingleX, y: brickY, text: options[0] },
+    { x: q1_x, y: brickY, text: options[1] },
+    { x: q2_x, y: brickY, text: options[2] },
+    { x: q3_x, y: q3_y, text: options[3] }
+  ];
+
+  const sBricksData = [
+    { x: b0_x, y: brickY },
+    { x: b1_x, y: brickY },
+    { x: b2_x, y: brickY }
+  ];
+
+  sBricksData.forEach(sb => {
+    const el = document.createElement('div');
+    el.className = 'solid-brick';
+    el.style.left = sb.x + 'px';
+    el.style.bottom = sb.y + 'px';
+    container.appendChild(el);
+    dynamicSolidBricks.push({ x: sb.x, y: sb.y, w: 52, h: 52, el: el });
+  });
+
+  qBlocksData.forEach(qb => {
+    const charArray = qb.text.split('');
+    const b = document.createElement('div');
+    b.className = 'block';
+    if (maxCharLen > 1) b.classList.add('multi-char');
+    b.style.left = qb.x + 'px';
+    b.style.bottom = qb.y + 'px';
+    b.style.width = unifiedWidth + 'px'; 
+
+    b.dataset.text = qb.text;
+    b.dataset.charCount = charArray.length;
+    b.dataset.x = qb.x;
+    b.dataset.y = qb.y;
+    b.dataset.currentWidth = unifiedWidth;
+
+    const dotsContainer = document.createElement('div');
+    dotsContainer.className = 'block-corner-dots';
+    b.appendChild(dotsContainer);
+
+    charArray.forEach(char => {
+      const charSpan = document.createElement('span');
+      charSpan.className = 'block-text-char';
+      charSpan.innerText = char;
+      b.appendChild(charSpan);
+    });
+
+    container.appendChild(b);
+    dynamicQuestionBlocks.push({ x: qb.x, y: qb.y, w: unifiedWidth, h: 52, text: qb.text, el: b });
+  });
+
+  updateHUD();
+  if (!isSpawning) {
+    setTimeout(playAudio, 300);
+  }
+}
+
+function updateWords() {
+  const input = document.getElementById('custom-words').value;
+  const list = input.split(/[,，\s]+/).filter(w => w.trim().length > 0);
+  if (list.length >= 4) {
+    words = list;
+    initWorld();
+  } else {
+    alert("请至少输入 4 个词语！/ Please enter at least 4 words.");
+  }
+}
+
+function createHintFlyPop(x, y, text) {
+  const hintText = getPinyinOrEnglish(text);
+  const pop = document.createElement('div');
+  pop.className = 'hint-fly-pop';
+  pop.innerText = hintText;
+  pop.style.left = (x + 10) + 'px';
+  pop.style.bottom = (y + 54) + 'px';
+  document.getElementById('game-container').appendChild(pop);
+  setTimeout(() => pop.remove(), 900);
+}
+
+function enterCastleAndAdvance() {
+  if (isClearing) return;
+  isClearing = true;
+  keys.left = false;
+  keys.right = false;
+
+  playClearFanfare();
+
+  const marioEl = document.getElementById('mario');
+  document.getElementById('cleared-banner').style.display = 'block';
+
+  let fadeStep = 0;
+  const fadeTimer = setInterval(() => {
+    fadeStep++;
+    marioEl.style.opacity = Math.max(0, 1 - fadeStep * 0.15);
+    if (fadeStep >= 7) {
+      clearInterval(fadeTimer);
+      marioEl.style.opacity = '0';
+      setTimeout(() => {
+        currentWorld++;
+        document.getElementById('txt-world').innerText = i18n[currentLang].world + currentWorld;
+        initWorld();
+      }, 2000);
+    }
+  }, 40);
+}
+
+// ====== 游戏主物理循环 ======
+function gameLoop() {
+  goombas.forEach(g => {
+    const el = document.getElementById(g.elId);
+    if (g.alive) {
+      g.x += g.vx;
+      if (g.x <= g.minX || g.x >= g.maxX) g.vx *= -1;
+      el.style.left = g.x + 'px';
+
+      if (!isDying && !isClearing && !isSpawning) {
+        if (posX + 34 > g.x && posX < g.x + 36 && posY + 40 > g.y && posY < g.y + 36) {
+          if (velY < 0 && posY >= g.y + 16) {
+            playStompSound();
+            g.alive = false;
+            el.classList.add('flattened');
+            velY = 11;
+            score += 100;
+            updateHUD();
+            setTimeout(() => {
+              g.alive = true;
+              g.x = (g.minX + g.maxX) / 2;
+              el.classList.remove('flattened');
+            }, 4000);
+          } else {
+            triggerMarioFallAndRestart();
+          }
+        }
+      }
+    }
+  });
+
+  if (!isClearing && !isDying && !isSpawning) {
+    if (keys.left) { velX -= ACCEL; facingRight = false; }
+    if (keys.right) { velX += ACCEL; facingRight = true; }
+
+    velX *= isGrounded ? FRICTION : 0.92;
+    if (Math.abs(velX) > MAX_SPEED) velX = Math.sign(velX) * MAX_SPEED;
+    if (Math.abs(velX) < 0.05) velX = 0;
+    posX += velX;
+
+    if (posX < 8) { posX = 8; velX = 0; }
+    if (posX > 940) { posX = 940; velX = 0; }
+
+    prevPosY = posY;
+
+    if (!isGrounded) {
+      velY -= GRAVITY;
+      posY += velY;
+    }
+
+    let onPlatform = false;
+    let platformsToTest = [...dynamicSolidBricks];
+    if (!allQuestionsCleared) {
+      platformsToTest = platformsToTest.concat(dynamicQuestionBlocks);
+    }
+
+    platformsToTest.forEach(plat => {
+      if (posX + MARIO_W - 8 > plat.x && posX + 8 < plat.x + plat.w) {
+        const platTop = plat.y + plat.h;
+        if (velY <= 0 && prevPosY >= platTop - 8 && posY <= platTop + 4) {
+          posY = platTop;
+          velY = 0;
+          isGrounded = true;
+          onPlatform = true;
+        }
+      }
+    });
+
+    if (!isGrounded) {
+      if (!onPlatform && posY <= 64) {
+        posY = 64;
+        velY = 0;
+        isGrounded = true;
+      }
+    } else if (!onPlatform && posY > 64) {
+      isGrounded = false;
+    }
+
+    if (!allQuestionsCleared && velY > 0) {
+      dynamicQuestionBlocks.forEach(qb => {
+        const xOverlap = (posX + MARIO_W - 6 > qb.x) && (posX + 6 < qb.x + qb.w);
+        const headY = posY + MARIO_H;
+        const prevHeadY = prevPosY + MARIO_H;
+        const hitBottom = (prevHeadY <= qb.y + 8 && headY >= qb.y - 12) || (headY >= qb.y - 8 && headY <= qb.y + 28);
+
+        if (xOverlap && hitBottom && velY > 0) {
+          velY = -2.2;
+          posY = qb.y - MARIO_H - 1;
+
+          qb.el.classList.remove('hit-bounce');
+          void qb.el.offsetWidth;
+          qb.el.classList.add('hit-bounce');
+
+          if (qb.text === currentTarget) {
+            playCoinSound();
+            createHintFlyPop(qb.x, qb.y, qb.text);
+            qb.el.style.background = "#2a9d8f";
+            qb.el.style.borderColor = "#1f6f66";
+            qb.el.style.color = "#fff";
+
+            currentStep++;
+            setTimeout(renderBlocks, 500);
+          } else {
+            playDeathSound();
+            qb.el.style.background = "#e63946";
+            qb.el.style.borderColor = "#9d0208";
+            qb.el.style.color = "#fff";
+            setTimeout(playAudio, 350);
+          }
+        }
+      });
+
+      dynamicSolidBricks.forEach(brick => {
+        const xOverlap = (posX + MARIO_W - 6 > brick.x) && (posX + 6 < brick.x + brick.w);
+        const headY = posY + MARIO_H;
+        const prevHeadY = prevPosY + MARIO_H;
+        const hitBottom = (prevHeadY <= brick.y + 8 && headY >= brick.y - 10) || (headY >= brick.y - 6 && headY <= brick.y + 26);
+
+        if (xOverlap && hitBottom && velY > 0) {
+          velY = -2;
+          posY = brick.y - MARIO_H - 1;
+          brick.el.classList.remove('hit-bounce');
+          void brick.el.offsetWidth;
+          brick.el.classList.add('hit-bounce');
+          playTone(300, 'square', 0.08, 0.1);
+        }
+      });
+    }
+
+    if (allQuestionsCleared && posX >= rightCastleDoorX) {
+      enterCastleAndAdvance();
+    }
+
+    const marioEl = document.getElementById('mario');
+    marioEl.style.left = posX + 'px';
+    marioEl.style.bottom = posY + 'px';
+    const scaleX = facingRight ? 2.8 : -2.8;
+    marioEl.style.transform = `scaleX(${scaleX}) scaleY(2.8)`;
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+// ====== 🌟 iPad 触控事件与键盘事件双重监听绑定 ======
+function bindTouchButton(btnId, keyName, isJump = false) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+
+  const handleStart = (e) => {
+    e.preventDefault();
+    ensureAudio();
+    if (isJump) {
+      if (isGrounded && !isClearing && !isDying && !isSpawning) {
+        velY = JUMP_FORCE;
+        isGrounded = false;
+      }
+    } else {
+      keys[keyName] = true;
+    }
+  };
+
+  const handleEnd = (e) => {
+    e.preventDefault();
+    if (!isJump) {
+      keys[keyName] = false;
+    }
+  };
+
+  btn.addEventListener('touchstart', handleStart, { passive: false });
+  btn.addEventListener('touchend', handleEnd, { passive: false });
+  btn.addEventListener('mousedown', handleStart);
+  btn.addEventListener('mouseup', handleEnd);
+  btn.addEventListener('mouseleave', handleEnd);
+}
+
+bindTouchButton('btn-left', 'left');
+bindTouchButton('btn-right', 'right');
+bindTouchButton('btn-jump', null, true);
+
+// 键盘控制兼容
+window.addEventListener('keydown', (e) => {
+  ensureAudio();
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (isClearing || isDying || isSpawning) return;
+
+  if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+  if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+  
+  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+    if (!e.repeat && isGrounded) {
+      velY = JUMP_FORCE;
+      isGrounded = false;
+    }
+    e.preventDefault();
+  }
+  if (e.code === 'KeyR') playAudio();
+});
+
+window.addEventListener('keyup', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+  if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+});
+
+// 启动游戏
+initWorld();
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
