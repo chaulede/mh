@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>超级马里奥：听音辨字大冒险 (iPad 触控全适配版)</title>
+<title>Super Mario: Listening & Character Adventure (iPad Edition)</title>
 <style>
   * { box-sizing: border-box; touch-action: manipulation; }
   body {
@@ -50,7 +50,7 @@
   #btn-replay:hover, #btn-lang:hover { transform: translateY(-2px); }
   #btn-replay:active, #btn-lang:active { transform: translateY(2px); box-shadow: 0 2px #9d0208; }
 
-  /* 游戏舞台画布 */
+  /* Game Stage Canvas */
   #game-container {
     position: relative;
     width: 980px;
@@ -62,7 +62,7 @@
     box-shadow: 0 12px 36px rgba(0,0,0,0.65);
   }
 
-  /* 地面 */
+  /* Ground */
   .ground {
     position: absolute;
     bottom: 0;
@@ -78,7 +78,7 @@
     z-index: 10;
   }
 
-  /* 左侧大城堡 */
+  /* Left Big Castle */
   #left-big-castle {
     position: absolute;
     bottom: 64px;
@@ -89,7 +89,7 @@
     pointer-events: none;
   }
 
-  /* 右侧小城堡 */
+  /* Right Small Castle */
   #right-small-castle {
     position: absolute;
     bottom: 64px;
@@ -100,7 +100,7 @@
     pointer-events: none;
   }
 
-  /* 8-bit 马里奥像素点阵 */
+  /* 8-bit Mario Pixel Grid */
   #mario {
     position: absolute;
     width: 16px;
@@ -132,7 +132,7 @@
       1px 14px #5e3023, 2px 14px #5e3023, 3px 14px #5e3023, 7px 14px #5e3023, 8px 14px #5e3023, 9px 14px #5e3023, 10px 14px #5e3023;
   }
 
-  /* 经典红砖块 */
+  /* Solid Bricks */
   .solid-brick {
     position: absolute;
     width: 52px;
@@ -149,7 +149,7 @@
     animation: blockBounce 0.16s ease-out;
   }
 
-  /* 金色问号汉字砖块 */
+  /* Question Character Blocks */
   .block {
     position: absolute;
     min-width: 52px;
@@ -203,7 +203,7 @@
     100% { transform: translateY(0); }
   }
 
-  /* 🌟 答对后向上飘出的英文/拼音气泡 */
+  /* Hint Bubbles */
   .hint-fly-pop {
     position: absolute;
     background: rgba(0, 0, 0, 0.95);
@@ -225,7 +225,7 @@
     100% { transform: translateY(-80px) scale(1); opacity: 0; }
   }
 
-  /* 板栗仔 */
+  /* Goomba */
   .goomba {
     position: absolute;
     width: 16px;
@@ -258,7 +258,7 @@
     transform: scaleX(2.5) scaleY(0.65) translateY(12px) !important;
   }
 
-  /* 通关与 Game Over 弹窗 */
+  /* Stage Cleared & Game Over Banners */
   #cleared-banner, #gameover-banner {
     display: none;
     position: absolute;
@@ -278,7 +278,7 @@
   #gameover-banner h2 { margin: 0 0 6px 0; color: #e63946; font-size: 28px; letter-spacing: 2px; }
   #cleared-banner p, #gameover-banner p { margin: 0; font-size: 14px; color: #eee; }
 
-  /* 🌟 iPad 专属触控游戏手柄 (屏幕下方悬浮控制栏) */
+  /* iPad Touch Controller */
   #ipad-touch-controller {
     display: flex;
     justify-content: space-between;
@@ -299,7 +299,7 @@
     height: 55px;
     background: #2b6cb0;
     color: white;
-    font-size: 24px;
+    font-size: 18px;
     font-weight: bold;
     border: none;
     border-radius: 10px;
@@ -339,7 +339,7 @@
     box-shadow: 0 2px #9c4221;
   }
 
-  /* 底部面板 */
+  /* Bottom Controls Panel */
   #controls {
     width: 980px;
     background: #202232;
@@ -360,7 +360,7 @@
     color: #edf2f4;
     font-size: 13px;
     font-weight: bold;
-    min-width: 140px;
+    min-width: 150px;
   }
   select, input[type="text"] {
     padding: 7px 12px;
@@ -397,7 +397,6 @@
     text-align: center;
   }
 
-  /* 🌟 针对 iPad 屏幕尺寸的自动整体缩放与响应式容器 */
   @media screen and (max-width: 1024px) {
     body {
       transform: scale(0.98);
@@ -410,21 +409,18 @@
 
 <div id="header">
   <div class="hud-badge">
-    <span>🚩 <span id="txt-world">关卡 1-1</span></span>
+    <span>🚩 <span id="txt-world">World 1-1</span></span>
     <span>❤️ <span id="hearts">❤️❤️❤️</span></span>
     <span>🪙 <strong id="score" style="color: #ffd700;">0</strong></span>
-    <span>🎯 本关进度: <strong id="progress" style="color: #48bfe3;">1/5</strong></span>
+    <span>🎯 Progress: <strong id="progress" style="color: #48bfe3;">1/5</strong></span>
   </div>
   <div>
-    <button id="btn-replay" onclick="playAudio()">🌸 🔊 <span id="txt-listen">离线听音 / Listen</span></button>
-  </div>
-  <div>
-    <button id="btn-lang" onclick="toggleLang()">EN / 中文</button>
+    <button id="btn-replay" onclick="playAudio()">🌸 🔊 <span id="txt-listen">Listen Audio (Press R)</span></button>
   </div>
 </div>
 
 <div id="game-container">
-  <!-- 左侧大城堡 -->
+  <!-- Left Big Castle -->
   <svg id="left-big-castle" viewBox="0 0 140 250">
     <defs>
       <pattern id="castle-brick" width="16" height="8" patternUnits="userSpaceOnUse">
@@ -447,7 +443,7 @@
     <path d="M 18 24 L 18 12 L 30 12 L 30 24 L 46 24 L 46 12 L 58 12 L 58 24 L 74 24 L 74 12 L 88 12 L 88 24 Z" fill="#b84418" stroke="#5c1800"/>
   </svg>
 
-  <!-- 右侧小城堡 -->
+  <!-- Right Small Castle -->
   <svg id="right-small-castle" viewBox="0 0 130 140">
     <defs>
       <pattern id="small-brick" width="14" height="7" patternUnits="userSpaceOnUse">
@@ -471,76 +467,76 @@
     <rect x="74" y="24" width="8" height="18" rx="2" fill="#000"/>
   </svg>
 
-  <!-- 马里奥 -->
+  <!-- Mario -->
   <div id="mario">
     <div class="mario-pixel"></div>
   </div>
 
-  <!-- 动态布局容器 -->
+  <!-- Dynamic Bricks Layout Container -->
   <div id="bricks-layout-container"></div>
 
-  <!-- 板栗仔巡逻怪 -->
+  <!-- Goombas -->
   <div class="goomba" id="goomba1" style="left: 390px;"><div class="goomba-pixel"></div></div>
   <div class="goomba" id="goomba2" style="left: 750px;"><div class="goomba-pixel"></div></div>
 
-  <!-- 通关横幅 -->
+  <!-- Stage Cleared Banner -->
   <div id="cleared-banner">
-    <h2 id="banner-title">🎉 关卡完成！COURSE CLEAR!</h2>
-    <p id="banner-sub">马里奥已进入城堡，正在载入下一关...</p>
+    <h2>🎉 COURSE CLEAR!</h2>
+    <p>Mario entered the castle, loading next stage...</p>
   </div>
 
-  <!-- Game Over 弹窗 -->
+  <!-- Game Over Banner -->
   <div id="gameover-banner">
     <h2>GAME OVER</h2>
-    <p>3条生命已用尽！重新开始挑战...</p>
+    <p>All lives exhausted! Restarting challenge...</p>
   </div>
 
   <div class="ground"></div>
 </div>
 
-<!-- 🌟 iPad 虚拟触控手柄区域 -->
+<!-- iPad Touch Controller Bar -->
 <div id="ipad-touch-controller">
   <div class="d-pad">
-    <button class="pad-btn" id="btn-left">⬅️ 左移</button>
-    <button class="pad-btn" id="btn-right">右移 ➡️</button>
+    <button class="pad-btn" id="btn-left">⬅️ Left</button>
+    <button class="pad-btn" id="btn-right">Right ➡️</button>
   </div>
   <div class="action-pad">
-    <button class="action-btn" id="btn-jump">⬆️ 跳跃</button>
+    <button class="action-btn" id="btn-jump">⬆️ Jump</button>
   </div>
 </div>
 
 <div id="controls">
   <div class="control-row">
-    <label id="txt-preset-label">《轻松学中文》课本预设:</label>
+    <label id="txt-preset-label">Easy Chinese Presets:</label>
     <select id="preset-select" onchange="onPresetChange()">
-      <option value="1">第1册: 数字与基本字 (一, 二, 三, 四, 五, 六, 七, 八, 九, 十, 大, 小, 多, 少, 日, 月, 山, 水)</option>
-      <option value="2">第1册: 身体五官 (头, 发, 眼, 睛, 耳, 朵, 鼻, 子, 嘴, 巴, 手, 足)</option>
-      <option value="3">第2册: 家庭成员 (爸爸, 妈妈, 哥哥, 弟弟, 姐姐, 妹妹, 爷爷, 奶奶, 老师, 朋友)</option>
-      <option value="4">第2册: 可爱动物 (猫, 狗, 熊猫, 兔子, 大象, 老虎, 河马)</option>
-      <option value="5">第3册: 水果颜色 (苹果, 香蕉, 西瓜, 葡萄, 红色, 蓝色, 黑色, 白色)</option>
+      <option value="1">Book 1: Numbers & Basics (一, 二, 三, 四, 五, 六, 七, 八, 九, 十, 大, 小, 多, 少, 日, 月, 山, 水)</option>
+      <option value="2">Book 1: Body Parts (头, 发, 眼, 睛, 耳, 朵, 鼻, 子, 嘴, 巴, 手, 足)</option>
+      <option value="3">Book 2: Family & Roles (爸爸, 妈妈, 哥哥, 弟弟, 姐姐, 妹妹, 爷爷, 奶奶, 老师, 朋友)</option>
+      <option value="4">Book 2: Cute Animals (猫, 狗, 熊猫, 兔子, 大象, 老虎, 河马)</option>
+      <option value="5">Book 3: Fruits & Colors (苹果, 香蕉, 西瓜, 葡萄, 红色, 蓝色, 黑色, 白色)</option>
     </select>
   </div>
   
-  <!-- 欧路字典离线检索输入栏 -->
+  <!-- Eudic Offline Dictionary Search -->
   <div class="control-row">
-    <label id="txt-eng-label">欧路字典离线检索:</label>
-    <input type="text" id="english-input" placeholder="输入英文查词并加入词库 (例如: cat, dog, apple)..." onkeydown="if(event.key==='Enter') addEnglishWordFromEudic()">
-    <button id="btn-add-eng" class="btn-base btn-accent" onclick="addEnglishWordFromEudic()">📖 离线查词 / Eudic</button>
+    <label id="txt-eng-label">Eudic Offline Search:</label>
+    <input type="text" id="english-input" placeholder="Enter English word to search & add (e.g. cat, dog, apple)..." onkeydown="if(event.key==='Enter') addEnglishWordFromEudic()">
+    <button id="btn-add-eng" class="btn-base btn-accent" onclick="addEnglishWordFromEudic()">📖 Search Eudic</button>
   </div>
 
   <div class="control-row">
-    <label id="txt-custom-label">当前/自定义词汇表 (最少4个):</label>
+    <label id="txt-custom-label">Custom Vocab (Min 4):</label>
     <input type="text" id="custom-words" value="一, 二, 三, 四, 五, 六, 七, 八, 九, 十, 大, 小, 多, 少, 日, 月, 山, 水">
-    <button id="btn-apply" class="btn-base" onclick="updateWords()">更新词库 / Update</button>
+    <button id="btn-apply" class="btn-base" onclick="updateWords()">Update Vocab</button>
   </div>
 </div>
 
 <div class="tip" id="txt-tip">
-  iPad 触控板已启用：点击屏幕下方「左移」「右移」「跳跃」按钮即可轻松控制马里奥！
+  iPad Touch Controller enabled: Tap the onscreen buttons below or use keyboard to control Mario!
 </div>
 
 <script>
-// ====== 欧路字典（Eudic）离线本地核心词典库 ======
+// ====== Eudic Offline Dictionary Database ======
 const eudicOfflineDict = {
   "one": "一", "two": "二", "three": "三", "four": "四", "five": "五",
   "six": "六", "seven": "七", "eight": "八", "nine": "九", "ten": "十",
@@ -634,7 +630,7 @@ async function addEnglishWordFromEudic() {
         matchedZh = translated.replace(/[^\u4e00-\u9fa5]/g, '').slice(0, 4);
       }
     } catch (err) {
-      console.warn("网络翻译失败", err);
+      console.warn("Translation failed", err);
     }
   }
 
@@ -658,11 +654,11 @@ function appendWordToCustomList(zhWord) {
     customInput.value = currentList.join(', ');
     updateWords();
   } else {
-    alert(`欧路离线词典提示：词汇 "${zhWord}" 已存在于当前词库中！`);
+    alert(`Eudic Dictionary Notice: Word "${zhWord}" already exists in the current vocabulary!`);
   }
 }
 
-// ====== 8-bit 原生实时音效合成器 ======
+// ====== 8-bit Realtime Audio Synthesizer ======
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function ensureAudio() {
   if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -775,7 +771,7 @@ function playClearFanfare() {
   });
 }
 
-// ====== 语音朗读 ======
+// ====== Speech Synthesis ======
 let localVoices = [];
 function loadLocalVoices() {
   if ('speechSynthesis' in window) localVoices = window.speechSynthesis.getVoices();
@@ -809,46 +805,6 @@ function playAudio() {
   window.speechSynthesis.speak(utter);
 }
 
-// ====== 多语言 UI ======
-const i18n = {
-  zh: {
-    world: "关卡 1-",
-    listen: "离线听音",
-    presetLabel: "《轻松学中文》课本预设:",
-    engLabel: "欧路字典离线检索:",
-    customLabel: "当前/自定义词汇表 (最少4个):",
-    update: "更新词库",
-    tip: "iPad 触控板已启用：点击屏幕下方「左移」「右移」「跳跃」按钮即可轻松控制马里奥！",
-    bannerTitle: "🎉 关卡完成！COURSE CLEAR!",
-    bannerSub: "马里奥已进入城堡，正在载入下一关..."
-  },
-  en: {
-    world: "World 1-",
-    listen: "Audio",
-    presetLabel: "Book Presets:",
-    engLabel: "Eudic Offline Search:",
-    customLabel: "Custom Vocab (Min 4):",
-    update: "Update Vocab",
-    tip: "iPad touch controller enabled: Tap buttons below to control Mario!",
-    bannerTitle: "🎉 COURSE CLEAR!",
-    bannerSub: "Mario entered the castle, loading next stage..."
-  }
-};
-let currentLang = 'zh';
-
-function toggleLang() {
-  currentLang = currentLang === 'zh' ? 'en' : 'zh';
-  document.getElementById('txt-world').innerText = i18n[currentLang].world + currentWorld;
-  document.getElementById('txt-listen').innerText = i18n[currentLang].listen;
-  document.getElementById('txt-preset-label').innerText = i18n[currentLang].presetLabel;
-  document.getElementById('txt-eng-label').innerText = i18n[currentLang].engLabel;
-  document.getElementById('txt-custom-label').innerText = i18n[currentLang].customLabel;
-  document.getElementById('btn-apply').innerText = i18n[currentLang].update;
-  document.getElementById('txt-tip').innerText = i18n[currentLang].tip;
-  document.getElementById('banner-title').innerText = i18n[currentLang].bannerTitle;
-  document.getElementById('banner-sub').innerText = i18n[currentLang].bannerSub;
-}
-
 const presetVocabMap = {
   "1": "一, 二, 三, 四, 五, 六, 七, 八, 九, 十, 大, 小, 多, 少, 日, 月, 山, 水",
   "2": "头, 发, 眼, 睛, 耳, 朵, 鼻, 子, 嘴, 巴, 手, 足",
@@ -865,7 +821,7 @@ function onPresetChange() {
   }
 }
 
-// ====== 关卡与状态 ======
+// ====== Game State ======
 let currentWorld = 1;
 let words = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "大", "小", "多", "少", "日", "月", "山", "水"];
 let levelFiveTargets = [];
@@ -910,7 +866,7 @@ function updateHUD() {
   document.getElementById('hearts').innerText = "❤️".repeat(Math.max(0, hp)) + "🖤".repeat(Math.max(0, 3 - hp));
   document.getElementById('score').innerText = score;
   if (allQuestionsCleared) {
-    document.getElementById('progress').innerHTML = `<span style="color:#2ecc71; font-weight:bold;">全部通过！请走到城堡门口 👉</span>`;
+    document.getElementById('progress').innerHTML = `<span style="color:#2ecc71; font-weight:bold;">All Cleared! Walk to Castle 👉</span>`;
   } else {
     document.getElementById('progress').innerText = `${Math.min(5, currentStep + 1)}/5`;
   }
@@ -1138,7 +1094,7 @@ function updateWords() {
     words = list;
     initWorld();
   } else {
-    alert("请至少输入 4 个词语！/ Please enter at least 4 words.");
+    alert("Please enter at least 4 words!");
   }
 }
 
@@ -1173,14 +1129,14 @@ function enterCastleAndAdvance() {
       marioEl.style.opacity = '0';
       setTimeout(() => {
         currentWorld++;
-        document.getElementById('txt-world').innerText = i18n[currentLang].world + currentWorld;
+        document.getElementById('txt-world').innerText = "World 1-" + currentWorld;
         initWorld();
       }, 2000);
     }
   }, 40);
 }
 
-// ====== 游戏主物理循环 ======
+// ====== Game Loop ======
 function gameLoop() {
   goombas.forEach(g => {
     const el = document.getElementById(g.elId);
@@ -1323,7 +1279,7 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-// ====== 🌟 iPad 触控事件与键盘事件双重监听绑定 ======
+// ====== Input Handling ======
 function bindTouchButton(btnId, keyName, isJump = false) {
   const btn = document.getElementById(btnId);
   if (!btn) return;
@@ -1359,7 +1315,6 @@ bindTouchButton('btn-left', 'left');
 bindTouchButton('btn-right', 'right');
 bindTouchButton('btn-jump', null, true);
 
-// 键盘控制兼容
 window.addEventListener('keydown', (e) => {
   ensureAudio();
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
@@ -1384,7 +1339,7 @@ window.addEventListener('keyup', (e) => {
   if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
 });
 
-// 启动游戏
+// Start Game
 initWorld();
 requestAnimationFrame(gameLoop);
 </script>
